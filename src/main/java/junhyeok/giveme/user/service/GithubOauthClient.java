@@ -39,4 +39,24 @@ public class GithubOauthClient {
 
         return response.getToken();
     }
+
+    public GithubProfile getProfile(String token){
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer "+token);
+        HttpEntity entity = new HttpEntity(null, headers);
+
+        ResponseEntity<GithubProfile> response;
+        try{
+            response = restTemplate.exchange(
+                    "https://api.github.com/user",
+                    HttpMethod.GET,
+                    entity,
+                    GithubProfile.class
+            );
+        }catch (HttpClientErrorException e){
+            throw new ExternalApiErrorException();
+        }
+
+        return response.getBody();
+    }
 }
