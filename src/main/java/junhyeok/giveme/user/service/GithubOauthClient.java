@@ -24,7 +24,7 @@ public class GithubOauthClient {
     @Value("${oauth.client.secret}")
     private String clientSecret;
 
-    public String getGitHubToken(String code){
+    public String getGithubToken(String code){
         GithubTokenReq req = new GithubTokenReq(code, clientId, clientSecret);
 
         GithubTokenRes response = restTemplate.postForObject(
