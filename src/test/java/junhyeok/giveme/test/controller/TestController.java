@@ -13,7 +13,6 @@ public class TestController {
 
     @GetMapping("test/exception")
     void generateException(){
-        System.out.println("hello!");
         throw new TestApplicationException();
     }
 }
