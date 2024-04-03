@@ -2,6 +2,7 @@ package junhyeok.giveme.user.service;
 
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.user.dao.RefreshTokenDao;
+import junhyeok.giveme.user.dto.response.LoginRes;
 import junhyeok.giveme.user.utils.JwtUtils;
 import junhyeok.giveme.user.dto.response.GithubProfile;
 import junhyeok.giveme.user.entity.User;
@@ -17,7 +18,7 @@ public class AuthService {
     private final GithubTokenDao githubTokenDao;
     private final RefreshTokenDao refreshTokenDao;
 
-    public void login(String code){
+    public LoginRes login(String code){
         String githubToken = oauthClient.getGithubToken(code);
 
         GithubProfile newUserProfile = oauthClient.getProfile(githubToken);
@@ -25,9 +26,11 @@ public class AuthService {
         updateOrCreateUser(newUserProfile);
 
         String accessToken = jwtUtils.createAccessToken(newUserProfile.getGithubId());
-        String refreshToken = jwtUtils.createRefreshToken(newUserProfile.getGithubId());;
+        String refreshToken = jwtUtils.createRefreshToken(newUserProfile.getGithubId());
 
         saveTokens(newUserProfile.getGithubId(), githubToken, refreshToken);
+
+        return new LoginRes(accessToken, refreshToken);
     }
 
     private void updateOrCreateUser(GithubProfile newUserProfile){

@@ -5,6 +5,7 @@ import junhyeok.giveme.user.dao.MemoryGithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryRefreshTokenDao;
 import junhyeok.giveme.user.dao.RefreshTokenDao;
 import junhyeok.giveme.user.dto.response.GithubProfile;
+import junhyeok.giveme.user.dto.response.LoginRes;
 import junhyeok.giveme.user.entity.User;
 import junhyeok.giveme.user.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -58,7 +59,7 @@ public class AuthServiceTest {
         given(jwtUtils.createAccessToken(newProfile.getGithubId())).willReturn(ACCESS_TOKEN);
         given(jwtUtils.createRefreshToken(newProfile.getGithubId())).willReturn(REFRESH_TOKEN);
 
-        authService.login(OAUTH_CODE);
+        LoginRes res = authService.login(OAUTH_CODE);
 
         then(githubOauthClient).should().getGithubToken(anyString());
         then(githubOauthClient).should().getProfile(anyString());
@@ -68,6 +69,8 @@ public class AuthServiceTest {
         String savedRefreshToken = refreshTokenDao.findByGithubId(newProfile.getGithubId());
         Assertions.assertEquals(GITHUB_ACCESS_TOKEN, savedGithubToken);
         Assertions.assertEquals(REFRESH_TOKEN, savedRefreshToken);
+        Assertions.assertEquals(REFRESH_TOKEN, res.getRefreshToken());
+        Assertions.assertEquals(ACCESS_TOKEN, res.getAccessToken());
     }
 
     @Test
@@ -81,7 +84,7 @@ public class AuthServiceTest {
         given(jwtUtils.createAccessToken(newProfile.getGithubId())).willReturn(ACCESS_TOKEN);
         given(jwtUtils.createRefreshToken(newProfile.getGithubId())).willReturn(REFRESH_TOKEN);
 
-        authService.login(OAUTH_CODE);
+        LoginRes res = authService.login(OAUTH_CODE);
 
         then(githubOauthClient).should().getGithubToken(anyString());
         then(githubOauthClient).should().getProfile(anyString());
@@ -91,5 +94,7 @@ public class AuthServiceTest {
         String savedRefreshToken = refreshTokenDao.findByGithubId(newProfile.getGithubId());
         Assertions.assertEquals(GITHUB_ACCESS_TOKEN, savedGithubToken);
         Assertions.assertEquals(REFRESH_TOKEN, savedRefreshToken);
+        Assertions.assertEquals(REFRESH_TOKEN, res.getRefreshToken());
+        Assertions.assertEquals(ACCESS_TOKEN, res.getAccessToken());
     }
 }
