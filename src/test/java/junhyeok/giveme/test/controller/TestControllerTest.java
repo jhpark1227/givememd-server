@@ -8,12 +8,12 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-class TestControllerApiTest {
+public class TestControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
     @Test
@@ -32,5 +32,4 @@ class TestControllerApiTest {
         assertEquals(HttpStatus.BAD_REQUEST, res.getStatusCode());
         assertEquals("잘못된 요청입니다.", res.getBody().getMessage());
     }
-
 }
