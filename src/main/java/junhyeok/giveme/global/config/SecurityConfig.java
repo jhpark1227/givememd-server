@@ -1,5 +1,6 @@
 package junhyeok.giveme.global.config;
 
+import junhyeok.giveme.global.security.JwtAuthenticationEntryPoint;
 import junhyeok.giveme.global.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
@@ -30,7 +32,8 @@ public class SecurityConfig {
                                 config.requestMatchers("api/auth/**").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(config->config.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
         return http.build();
     }
