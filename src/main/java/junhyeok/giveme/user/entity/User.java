@@ -27,6 +27,7 @@ public class User {
         this.githubId = profile.getGithubId();
         this.name = profile.getName();
         this.image = profile.getImage();
+        this.role = Role.USER;
     }
 
     public void changeProfile(GithubProfile profile){
