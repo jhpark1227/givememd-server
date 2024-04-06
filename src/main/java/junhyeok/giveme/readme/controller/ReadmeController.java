@@ -1,6 +1,7 @@
 package junhyeok.giveme.readme.controller;
 
 import junhyeok.giveme.readme.dto.request.CreateReadmeReq;
+import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.response.CreateReadmeRes;
 import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
 import junhyeok.giveme.readme.service.ReadmeService;
@@ -33,5 +34,13 @@ public class ReadmeController {
         return ResponseEntity.ok().body(res);
     }
 
+    @PostMapping("save")
+    public ResponseEntity saveReadme(Authentication auth, @RequestBody SaveReadmeReq req){
+        String userId = auth.getName();
+
+        readmeService.saveReadme(userId, req);
+
+        return ResponseEntity.created(null).build();
+    }
 
 }
