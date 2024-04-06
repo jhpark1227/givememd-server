@@ -1,15 +1,13 @@
 package junhyeok.giveme.readme.controller;
 
+import junhyeok.giveme.readme.dto.request.CreateReadmeReq;
+import junhyeok.giveme.readme.dto.response.CreateReadmeRes;
 import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
 import junhyeok.giveme.readme.service.ReadmeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController @RequestMapping("/api/readme")
 @RequiredArgsConstructor
@@ -23,4 +21,17 @@ public class ReadmeController {
 
         return ResponseEntity.ok().body(res);
     }
+
+    @PostMapping
+    public ResponseEntity<CreateReadmeRes> createReadme(
+            Authentication auth, @RequestBody CreateReadmeReq req){
+        String userId = auth.getName();
+        String url = req.getUrl();
+
+        CreateReadmeRes res = readmeService.createReadme(userId, url);
+
+        return ResponseEntity.ok().body(res);
+    }
+
+
 }

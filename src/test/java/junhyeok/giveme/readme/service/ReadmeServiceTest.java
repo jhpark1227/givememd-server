@@ -19,12 +19,15 @@ public class ReadmeServiceTest {
     GithubClient githubClient;
 
     @Mock
+    OpenAiClient openAiClient;
+
+    @Mock
     GithubTokenDao githubTokenDao;
 
 
     @BeforeEach
     void setUp(){
-        readmeService = new ReadmeService(githubClient, githubTokenDao);
+        readmeService = new ReadmeService(githubClient, openAiClient, githubTokenDao);
     }
 
     @Test
