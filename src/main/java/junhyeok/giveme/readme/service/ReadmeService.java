@@ -1,9 +1,18 @@
 package junhyeok.giveme.readme.service;
 
+import jakarta.transaction.Transactional;
 import junhyeok.giveme.readme.dto.request.ChatReq;
 import junhyeok.giveme.readme.dto.request.Message;
+import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.response.*;
+import junhyeok.giveme.readme.entity.Readme;
+import junhyeok.giveme.readme.exception.NotExistRepositoryException;
+import junhyeok.giveme.readme.exception.ReadmeExistException;
+import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.dao.GithubTokenDao;
+import junhyeok.giveme.user.entity.User;
+import junhyeok.giveme.user.exception.UserNotExistException;
+import junhyeok.giveme.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,12 +20,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Service
+@Service @Transactional
 @RequiredArgsConstructor
 public class ReadmeService {
     private final GithubClient githubClient;
     private final OpenAiClient openAiClient;
     private final GithubTokenDao githubTokenDao;
+    private final ReadmeRepository readmeRepository;
+    private final UserRepository userRepository;
 
     private static final String[] extensionList = {"java","js","html","py","c","cpp","php","swift","go","r","kt","rs","ts"};
 
@@ -30,13 +41,14 @@ public class ReadmeService {
     }
 
     public CreateReadmeRes createReadme(String userId, String url){
+        String repoName = url.split("/")[url.split("/").length-1];
         String token = githubTokenDao.findByGithubId(userId);
 
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("system","You are a helpful assistant for summarizing project codes."));
 
         collectSummary(messages, token, url+"/contents");
-        return new CreateReadmeRes(summarizeProject(messages));
+        return new CreateReadmeRes(repoName, summarizeProject(messages));
     }
 
     private String summarizeProject(List<Message> messages){
@@ -78,5 +90,31 @@ public class ReadmeService {
 
         String res = openAiClient.sendMessage(Arrays.asList(message));
         return res;
+    }
+
+    public void saveReadme(String userId, SaveReadmeReq req){
+        verifyRepositoryName(userId, req.getName());
+
+        User user = userRepository.findByGithubId(userId)
+                .orElseThrow(UserNotExistException::new);
+
+        if(readmeRepository.findByNameAndUser(req.getName(), user).isPresent()){
+            throw new ReadmeExistException();
+        }
+
+        readmeRepository.save(Readme.builder()
+                .content(req.getContent())
+                .user(user)
+                .name(req.getName()).build());
+    }
+
+    private void verifyRepositoryName(String userId, String repoName){
+        String token = githubTokenDao.findByGithubId(userId);
+
+        RepositoryInfo[] repos = githubClient.findRepositories(token);
+        Arrays.stream(repos).forEach(repo->System.out.println(repo.getName()));
+        if(!Arrays.stream(repos).anyMatch(repo->repo.getName().equals(repoName))){
+            throw new NotExistRepositoryException();
+        }
     }
 }
