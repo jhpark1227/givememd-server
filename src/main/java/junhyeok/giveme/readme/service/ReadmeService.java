@@ -1,11 +1,13 @@
 package junhyeok.giveme.readme.service;
 
+import jakarta.transaction.Transactional;
 import junhyeok.giveme.readme.dto.request.ChatReq;
 import junhyeok.giveme.readme.dto.request.Message;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.response.*;
 import junhyeok.giveme.readme.entity.Readme;
 import junhyeok.giveme.readme.exception.NotExistRepositoryException;
+import junhyeok.giveme.readme.exception.ReadmeExistException;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.user.entity.User;
@@ -18,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Service
+@Service @Transactional
 @RequiredArgsConstructor
 public class ReadmeService {
     private final GithubClient githubClient;
@@ -95,6 +97,10 @@ public class ReadmeService {
 
         User user = userRepository.findByGithubId(userId)
                 .orElseThrow(UserNotExistException::new);
+
+        if(readmeRepository.findByNameAndUser(req.getName(), user).isPresent()){
+            throw new ReadmeExistException();
+        }
 
         readmeRepository.save(Readme.builder()
                 .content(req.getContent())
