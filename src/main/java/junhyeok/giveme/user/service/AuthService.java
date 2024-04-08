@@ -58,6 +58,12 @@ public class AuthService {
         String newAccessToken = jwtUtils.createAccessToken(userId);
         String newRefreshToken = jwtUtils.createRefreshToken(userId);
 
+        updateRefreshToken(userId, newRefreshToken);
+
         return new ReissueRes(newAccessToken, newRefreshToken);
+    }
+
+    private void updateRefreshToken(Long userId, String refreshToken){
+        refreshTokenDao.save(userId, refreshToken);
     }
 }
