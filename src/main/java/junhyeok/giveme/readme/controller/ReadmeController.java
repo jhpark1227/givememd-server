@@ -67,10 +67,10 @@ public class ReadmeController {
     }
 
     @PatchMapping("/{readmeId}")
-    public ResponseEntity updateReadme(Authentication auth, @RequestBody UpdateReadmeReq req){
+    public ResponseEntity updateReadme(Authentication auth,@PathVariable("readmeId") Long readmeId, @RequestBody UpdateReadmeReq req){
         UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
 
-        readmeService.updateReadme(user.getId(), req);
+        readmeService.updateReadme(user.getId(), readmeId, req.getContent());
 
         return ResponseEntity.noContent().build();
     }
