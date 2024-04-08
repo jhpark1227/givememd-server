@@ -3,6 +3,8 @@ package junhyeok.giveme.user.service;
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.user.dao.RefreshTokenDao;
 import junhyeok.giveme.user.dto.response.LoginRes;
+import junhyeok.giveme.user.dto.response.ReissueRes;
+import junhyeok.giveme.user.exception.RefreshTokenNotEqualsException;
 import junhyeok.giveme.user.utils.JwtUtils;
 import junhyeok.giveme.user.dto.response.GithubProfile;
 import junhyeok.giveme.user.entity.User;
@@ -44,5 +46,18 @@ public class AuthService {
     private void saveTokens(String githubId, String githubToken, String refreshToken){
         githubTokenDao.save(githubId, githubToken);
         refreshTokenDao.save(githubId, refreshToken);
+    }
+
+    public ReissueRes reissue(String accessToken, String refreshToken){
+        String userId = jwtUtils.parseUserId(accessToken);
+
+        String savedRefreshToken = refreshTokenDao.findByGithubId(userId);
+        if(!savedRefreshToken.equals(refreshToken)){
+            throw new RefreshTokenNotEqualsException();
+        }
+        String newAccessToken = jwtUtils.createAccessToken(userId);
+        String newRefreshToken = jwtUtils.createRefreshToken(userId);
+
+        return new ReissueRes(newAccessToken, newRefreshToken);
     }
 }

@@ -23,6 +23,6 @@ public class RedisRefreshTokenDao implements RefreshTokenDao {
 
     @Override
     public String findByGithubId(String githubId) {
-        return null;
+        return valueOperations.get("RT:"+githubId);
     }
 }
