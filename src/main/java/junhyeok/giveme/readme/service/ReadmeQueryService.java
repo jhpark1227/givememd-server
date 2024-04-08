@@ -3,7 +3,7 @@ package junhyeok.giveme.readme.service;
 import junhyeok.giveme.readme.dto.ReadReadmeRes;
 import junhyeok.giveme.readme.dto.response.ListReadmeRes;
 import junhyeok.giveme.readme.entity.Readme;
-import junhyeok.giveme.readme.exception.CanNotReadReadmeException;
+import junhyeok.giveme.readme.exception.CanNotAccessReadmeException;
 import junhyeok.giveme.readme.exception.NotExistReadmeException;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.entity.User;
@@ -30,11 +30,21 @@ public class ReadmeQueryService {
     }
 
     public ReadReadmeRes readReadme(String userId, Long readmeId){
+        if(!validateOwner(userId, readmeId)) throw new CanNotAccessReadmeException();
+
         Readme entity = readmeRepository.findById(readmeId)
                 .orElseThrow(NotExistReadmeException::new);
 
-        if(!userId.equals(entity.getUser().getGithubId())) throw new CanNotReadReadmeException();
-
         return ReadReadmeRes.toDto(entity);
+    }
+
+    public boolean validateOwner(String userId, Long readmeId){
+        User user = userRepository.findByGithubId(userId)
+                .orElseThrow(UserNotExistException::new);
+
+        Readme readme = readmeRepository.findById(readmeId)
+                .orElseThrow(NotExistReadmeException::new);
+
+        return user.equals(readme.getUser());
     }
 }

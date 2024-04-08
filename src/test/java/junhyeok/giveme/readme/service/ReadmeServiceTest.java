@@ -1,6 +1,7 @@
 package junhyeok.giveme.readme.service;
 
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
+import junhyeok.giveme.readme.dto.request.UpdateReadmeReq;
 import junhyeok.giveme.readme.entity.Readme;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.dao.GithubTokenDao;
@@ -42,10 +43,13 @@ public class ReadmeServiceTest {
     @Mock
     UserRepository userRepository;
 
+    @Mock
+    ReadmeQueryService readmeQueryService;
+
 
     @BeforeEach
     void setUp(){
-        readmeService = new ReadmeService(githubClient, openAiClient, githubTokenDao,readmeRepository,userRepository);
+        readmeService = new ReadmeService(githubClient, openAiClient, githubTokenDao,readmeRepository,userRepository,readmeQueryService);
     }
 
     @Test
@@ -81,5 +85,16 @@ public class ReadmeServiceTest {
 
         assertEquals("repo1", captor.getValue().getName());
         assertEquals(1L, captor.getValue().getUser().getId());
+    }
+
+    @Test
+    void 리드미_내용_변경(){
+        Readme readme = Readme.builder().id(1L).build();
+        UpdateReadmeReq req = new UpdateReadmeReq(1L, "newReadme");
+        given(readmeQueryService.validateOwner("user",1L)).willReturn(true);
+        given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
+        readmeService.updateReadme("user",req);
+
+        Assertions.assertEquals("newReadme", readme.getContent());
     }
 }
