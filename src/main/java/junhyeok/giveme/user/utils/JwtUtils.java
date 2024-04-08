@@ -3,7 +3,9 @@ package junhyeok.giveme.user.utils;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import junhyeok.giveme.global.exception.ApplicationException;
 import junhyeok.giveme.user.exception.AuthExceptions;
+import junhyeok.giveme.user.exception.InvalidTokenException;
 import junhyeok.giveme.user.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -74,5 +76,22 @@ public class JwtUtils {
     public Authentication getAuthentication(String userId) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
         return new UsernamePasswordAuthenticationToken(userDetails,"",userDetails.getAuthorities());
+    }
+
+    public String parseUserId(String token){
+        String userId;
+        try{
+            userId =  Jwts.parserBuilder()
+                    .setSigningKey(key).build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("id").toString();
+        } catch (ExpiredJwtException e){
+            userId = e.getClaims().get("id").toString();
+        } catch (Exception e){
+            throw new InvalidTokenException();
+        }
+
+        return userId;
     }
 }
