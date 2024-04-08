@@ -4,14 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MemoryGithubTokenDao implements GithubTokenDao {
-    private final Map<String,String> tokens = new HashMap<>();
+    private final Map<Long,String> tokens = new HashMap<>();
     @Override
-    public void save(String githubId, String token) {
-        tokens.put(githubId, token);
+    public void save(Long id, String token) {
+        tokens.put(id, token);
     }
 
     @Override
-    public String findByGithubId(String githubId) {
-        return tokens.get(githubId);
+    public String findById(Long id) {
+        return tokens.get(id);
     }
 }

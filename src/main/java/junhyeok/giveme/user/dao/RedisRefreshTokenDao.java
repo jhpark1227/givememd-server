@@ -17,12 +17,12 @@ public class RedisRefreshTokenDao implements RefreshTokenDao {
         this.valueOperations = redisTemplate.opsForValue();
     }
     @Override
-    public void save(String githubId, String token) {
-        valueOperations.set("RT:"+githubId, token, Duration.ofMillis(REFRESH_TOKEN_VALID_TIME));
+    public void save(Long id, String token) {
+        valueOperations.set("RT:"+id, token, Duration.ofMillis(REFRESH_TOKEN_VALID_TIME));
     }
 
     @Override
-    public String findByGithubId(String githubId) {
-        return valueOperations.get("RT:"+githubId);
+    public String findById(Long id) {
+        return valueOperations.get("RT:"+id);
     }
 }

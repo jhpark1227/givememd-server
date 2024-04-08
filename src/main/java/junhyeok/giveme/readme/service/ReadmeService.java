@@ -34,17 +34,17 @@ public class ReadmeService {
     private static final String[] extensionList = {"java","js","html","py","c","cpp","php","swift","go","r","kt","rs","ts"};
 
 
-    public ReadRepositoriesRes readRepositories(String userId){
-        String githubToken = githubTokenDao.findByGithubId(userId);
+    public ReadRepositoriesRes readRepositories(Long userId){
+        String githubToken = githubTokenDao.findById(userId);
 
         RepositoryInfo[] repos = githubClient.findRepositories(githubToken);
 
         return new ReadRepositoriesRes(repos);
     }
 
-    public CreateReadmeRes createReadme(String userId, String url){
+    public CreateReadmeRes createReadme(Long userId, String url){
         String repoName = url.split("/")[url.split("/").length-1];
-        String token = githubTokenDao.findByGithubId(userId);
+        String token = githubTokenDao.findById(userId);
 
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("system","You are a helpful assistant for summarizing project codes."));
@@ -94,10 +94,10 @@ public class ReadmeService {
         return res;
     }
 
-    public void saveReadme(String userId, SaveReadmeReq req){
+    public void saveReadme(Long userId, SaveReadmeReq req){
         verifyRepositoryName(userId, req.getName());
 
-        User user = userRepository.findByGithubId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotExistException::new);
 
         if(readmeRepository.findByNameAndUser(req.getName(), user).isPresent()){
@@ -110,8 +110,8 @@ public class ReadmeService {
                 .name(req.getName()).build());
     }
 
-    private void verifyRepositoryName(String userId, String repoName){
-        String token = githubTokenDao.findByGithubId(userId);
+    private void verifyRepositoryName(Long userId, String repoName){
+        String token = githubTokenDao.findById(userId);
 
         RepositoryInfo[] repos = githubClient.findRepositories(token);
         Arrays.stream(repos).forEach(repo->System.out.println(repo.getName()));
@@ -120,7 +120,7 @@ public class ReadmeService {
         }
     }
 
-    public void updateReadme(String userId, UpdateReadmeReq req){
+    public void updateReadme(Long userId, UpdateReadmeReq req){
         if(!readmeQueryService.validateOwner(userId, req.getReadmeId())){
             throw new CanNotAccessReadmeException();
         }

@@ -46,7 +46,7 @@ class ReadmeQueryServiceTest {
         given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
         given(readmeRepository.findByUser(user)).willReturn(List.of(readme1, readme2));
 
-        ListReadmeRes res = readmeQueryService.listReadmes("user");
+        ListReadmeRes res = readmeQueryService.listReadmes(1L);
 
         Assertions.assertEquals("repo1", res.getRepos().get(0).getName());
         Assertions.assertEquals("repo2", res.getRepos().get(1).getName());
@@ -59,7 +59,7 @@ class ReadmeQueryServiceTest {
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
         given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
 
-        ReadReadmeRes res = readmeQueryService.readReadme("user", 1L);
+        ReadReadmeRes res = readmeQueryService.readReadme(1L, 1L);
 
         Assertions.assertEquals(1L, res.getId());
     }
@@ -73,18 +73,18 @@ class ReadmeQueryServiceTest {
         given(userRepository.findByGithubId("otherUser")).willReturn(Optional.of(otherUser));
 
         Assertions.assertThrows(CanNotAccessReadmeException.class,()->{
-           readmeQueryService.readReadme("otherUser", 1L);
+           readmeQueryService.readReadme(3L, 1L);
         });
     }
 
     @Test
     void 존재하지_않는_리드미ID로_조회(){
-        User user = User.builder().name("user").build();
+        User user = User.builder().id(1L).name("user").build();
         given(readmeRepository.findById(1L)).willReturn(Optional.empty());
         given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
 
         Assertions.assertThrows(NotExistReadmeException.class,()->{
-            readmeQueryService.readReadme("user", 1L);
+            readmeQueryService.readReadme(1L, 1L);
         });
     }
 

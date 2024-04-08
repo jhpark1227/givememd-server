@@ -57,10 +57,10 @@ public class ReadmeServiceTest {
         RepositoryInfo info1 = new RepositoryInfo("name1", "url1");
         RepositoryInfo info2 = new RepositoryInfo("name2", "url2");
         RepositoryInfo[] repos = {info1, info2};
-        given(githubTokenDao.findByGithubId("id")).willReturn("token");
+        given(githubTokenDao.findById(1L)).willReturn("token");
         given(githubClient.findRepositories("token")).willReturn(repos);
 
-        ReadRepositoriesRes res = readmeService.readRepositories("id");
+        ReadRepositoriesRes res = readmeService.readRepositories(1L);
 
         assertEquals("name1", res.getRepositories().get(0).getName());
         assertEquals("url1", res.getRepositories().get(0).getUrl());
@@ -71,15 +71,15 @@ public class ReadmeServiceTest {
     @Test
     void 리드미_저장(){
         User user = User.builder().id(1L).build();
-        given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
-        given(githubTokenDao.findByGithubId("user")).willReturn("token");
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(githubTokenDao.findById(1L)).willReturn("token");
         given(githubClient.findRepositories("token"))
                 .willReturn(new RepositoryInfo[]{new RepositoryInfo("repo1","url1")});
         ArgumentCaptor<Readme> captor = ArgumentCaptor.forClass(Readme.class);
 
         SaveReadmeReq req = new SaveReadmeReq("repo1","readme1");
 
-        readmeService.saveReadme("user",req);
+        readmeService.saveReadme(1L,req);
 
         then(readmeRepository).should().save(captor.capture());
 
@@ -91,9 +91,9 @@ public class ReadmeServiceTest {
     void 리드미_내용_변경(){
         Readme readme = Readme.builder().id(1L).build();
         UpdateReadmeReq req = new UpdateReadmeReq(1L, "newReadme");
-        given(readmeQueryService.validateOwner("user",1L)).willReturn(true);
+        given(readmeQueryService.validateOwner(1L,1L)).willReturn(true);
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
-        readmeService.updateReadme("user",req);
+        readmeService.updateReadme(1L,req);
 
         Assertions.assertEquals("newReadme", readme.getContent());
     }
