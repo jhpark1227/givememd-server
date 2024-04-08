@@ -120,14 +120,14 @@ public class ReadmeService {
         }
     }
 
-    public void updateReadme(Long userId, UpdateReadmeReq req){
-        if(!readmeQueryService.validateOwner(userId, req.getReadmeId())){
+    public void updateReadme(Long userId, Long readmeId, String content){
+        if(!readmeQueryService.validateOwner(userId, readmeId)){
             throw new CanNotAccessReadmeException();
         }
 
-        Readme readme = readmeRepository.findById(req.getReadmeId())
+        Readme readme = readmeRepository.findById(readmeId)
                         .orElseThrow(ReadmeExistException::new);
 
-        readme.changeContent(req.getContent());
+        readme.changeContent(content);
     }
 }

@@ -90,10 +90,10 @@ public class ReadmeServiceTest {
     @Test
     void 리드미_내용_변경(){
         Readme readme = Readme.builder().id(1L).build();
-        UpdateReadmeReq req = new UpdateReadmeReq(1L, "newReadme");
+        UpdateReadmeReq req = new UpdateReadmeReq("newReadme");
         given(readmeQueryService.validateOwner(1L,1L)).willReturn(true);
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
-        readmeService.updateReadme(1L,req);
+        readmeService.updateReadme(1L,1L, req.getContent());
 
         Assertions.assertEquals("newReadme", readme.getContent());
     }
