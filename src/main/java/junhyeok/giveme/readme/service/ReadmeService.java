@@ -1,11 +1,12 @@
 package junhyeok.giveme.readme.service;
 
 import jakarta.transaction.Transactional;
-import junhyeok.giveme.readme.dto.request.ChatReq;
 import junhyeok.giveme.readme.dto.request.Message;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
+import junhyeok.giveme.readme.dto.request.UpdateReadmeReq;
 import junhyeok.giveme.readme.dto.response.*;
 import junhyeok.giveme.readme.entity.Readme;
+import junhyeok.giveme.readme.exception.CanNotAccessReadmeException;
 import junhyeok.giveme.readme.exception.NotExistRepositoryException;
 import junhyeok.giveme.readme.exception.ReadmeExistException;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
@@ -28,6 +29,7 @@ public class ReadmeService {
     private final GithubTokenDao githubTokenDao;
     private final ReadmeRepository readmeRepository;
     private final UserRepository userRepository;
+    private final ReadmeQueryService readmeQueryService;
 
     private static final String[] extensionList = {"java","js","html","py","c","cpp","php","swift","go","r","kt","rs","ts"};
 
@@ -116,5 +118,16 @@ public class ReadmeService {
         if(!Arrays.stream(repos).anyMatch(repo->repo.getName().equals(repoName))){
             throw new NotExistRepositoryException();
         }
+    }
+
+    public void updateReadme(String userId, UpdateReadmeReq req){
+        if(!readmeQueryService.validateOwner(userId, req.getReadmeId())){
+            throw new CanNotAccessReadmeException();
+        }
+
+        Readme readme = readmeRepository.findById(req.getReadmeId())
+                        .orElseThrow(ReadmeExistException::new);
+
+        readme.changeContent(req.getContent());
     }
 }

@@ -3,7 +3,7 @@ package junhyeok.giveme.readme.service;
 import junhyeok.giveme.readme.dto.ReadReadmeRes;
 import junhyeok.giveme.readme.dto.response.ListReadmeRes;
 import junhyeok.giveme.readme.entity.Readme;
-import junhyeok.giveme.readme.exception.CanNotReadReadmeException;
+import junhyeok.giveme.readme.exception.CanNotAccessReadmeException;
 import junhyeok.giveme.readme.exception.NotExistReadmeException;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.entity.User;
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +57,7 @@ class ReadmeQueryServiceTest {
         User user = User.builder().id(1L).githubId("user").build();
         Readme readme = Readme.builder().id(1L).user(user).build();
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
+        given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
 
         ReadReadmeRes res = readmeQueryService.readReadme("user", 1L);
 
@@ -66,21 +66,25 @@ class ReadmeQueryServiceTest {
 
     @Test
     void 다른_사용자의_리드미_조회(){
-        User user = User.builder().id(1L).githubId("user").build();
+        User otherUser = User.builder().id(1L).githubId("otherUser").build();
+        User user = User.builder().id(2L).githubId("user").build();
         Readme readme = Readme.builder().id(1L).user(user).build();
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
+        given(userRepository.findByGithubId("otherUser")).willReturn(Optional.of(otherUser));
 
-        Assertions.assertThrows(CanNotReadReadmeException.class,()->{
+        Assertions.assertThrows(CanNotAccessReadmeException.class,()->{
            readmeQueryService.readReadme("otherUser", 1L);
         });
     }
 
     @Test
     void 존재하지_않는_리드미ID로_조회(){
+        User user = User.builder().name("user").build();
         given(readmeRepository.findById(1L)).willReturn(Optional.empty());
+        given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
 
         Assertions.assertThrows(NotExistReadmeException.class,()->{
-            readmeQueryService.readReadme("otherUser", 1L);
+            readmeQueryService.readReadme("user", 1L);
         });
     }
 

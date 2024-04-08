@@ -17,4 +17,8 @@ public class Readme {
 
     @ManyToOne @JoinColumn(name = "user_id")
     private User user;
+
+    public void changeContent(String content){
+        this.content = content;
+    }
 }
