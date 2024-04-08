@@ -105,12 +105,13 @@ public class AuthServiceTest {
         String userId = "user";
         refreshTokenDao.save(1L, "refreshToken");
         given(jwtUtils.parseUserId("accessToken")).willReturn(1L);
-        given(jwtUtils.createAccessToken(anyLong())).willReturn("accessToken");
-        given(jwtUtils.createRefreshToken(anyLong())).willReturn("refreshToken");
+        given(jwtUtils.createAccessToken(anyLong())).willReturn("newAccessToken");
+        given(jwtUtils.createRefreshToken(anyLong())).willReturn("newRefreshToken");
 
         authService.reissue("accessToken", "refreshToken");
 
         then(jwtUtils).should().createAccessToken(1L);
+        Assertions.assertEquals("newRefreshToken", refreshTokenDao.findById(1L));
     }
 
     @Test
