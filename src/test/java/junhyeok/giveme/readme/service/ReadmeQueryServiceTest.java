@@ -43,7 +43,7 @@ class ReadmeQueryServiceTest {
                         .name("repo1").build();
         Readme readme2 = Readme.builder()
                 .name("repo2").build();
-        given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
         given(readmeRepository.findByUser(user)).willReturn(List.of(readme1, readme2));
 
         ListReadmeRes res = readmeQueryService.listReadmes(1L);
@@ -57,7 +57,7 @@ class ReadmeQueryServiceTest {
         User user = User.builder().id(1L).githubId("user").build();
         Readme readme = Readme.builder().id(1L).user(user).build();
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
-        given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
         ReadReadmeRes res = readmeQueryService.readReadme(1L, 1L);
 
@@ -66,22 +66,22 @@ class ReadmeQueryServiceTest {
 
     @Test
     void 다른_사용자의_리드미_조회(){
-        User otherUser = User.builder().id(1L).githubId("otherUser").build();
-        User user = User.builder().id(2L).githubId("user").build();
+        User otherUser = User.builder().id(1L).build();
+        User user = User.builder().id(2L).build();
         Readme readme = Readme.builder().id(1L).user(user).build();
         given(readmeRepository.findById(1L)).willReturn(Optional.of(readme));
-        given(userRepository.findByGithubId("otherUser")).willReturn(Optional.of(otherUser));
+        given(userRepository.findById(2L)).willReturn(Optional.of(otherUser));
 
         Assertions.assertThrows(CanNotAccessReadmeException.class,()->{
-           readmeQueryService.readReadme(3L, 1L);
+           readmeQueryService.readReadme(2L, 1L);
         });
     }
 
     @Test
     void 존재하지_않는_리드미ID로_조회(){
-        User user = User.builder().id(1L).name("user").build();
+        User user = User.builder().id(1L).build();
         given(readmeRepository.findById(1L)).willReturn(Optional.empty());
-        given(userRepository.findByGithubId("user")).willReturn(Optional.of(user));
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
         Assertions.assertThrows(NotExistReadmeException.class,()->{
             readmeQueryService.readReadme(1L, 1L);
