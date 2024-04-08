@@ -1,6 +1,5 @@
 package junhyeok.giveme.user.service;
 
-import junhyeok.giveme.readme.entity.Readme;
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryGithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryRefreshTokenDao;
@@ -14,12 +13,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import junhyeok.giveme.user.utils.JwtUtils;
-import org.springframework.security.core.parameters.P;
 
 
 import java.util.Optional;
@@ -62,8 +58,8 @@ public class AuthServiceTest {
         given(githubOauthClient.getGithubToken(anyString())).willReturn(GITHUB_ACCESS_TOKEN);
         given(githubOauthClient.getProfile(anyString())).willReturn(newProfile);
         given(userRepository.findById(newProfile.getId())).willReturn(Optional.empty());
-        given(jwtUtils.createAccessToken(newProfile.getGithubId())).willReturn(ACCESS_TOKEN);
-        given(jwtUtils.createRefreshToken(newProfile.getGithubId())).willReturn(REFRESH_TOKEN);
+        given(jwtUtils.createAccessToken(newProfile.getId())).willReturn(ACCESS_TOKEN);
+        given(jwtUtils.createRefreshToken(newProfile.getId())).willReturn(REFRESH_TOKEN);
 
         LoginRes res = authService.login(OAUTH_CODE);
 
@@ -71,8 +67,8 @@ public class AuthServiceTest {
         then(githubOauthClient).should().getProfile(anyString());
         then(userRepository).should(times(1)).save(any(User.class));
 
-        String savedGithubToken = githubTokenDao.findByGithubId(newProfile.getGithubId());
-        String savedRefreshToken = refreshTokenDao.findByGithubId(newProfile.getGithubId());
+        String savedGithubToken = githubTokenDao.findById(newProfile.getId());
+        String savedRefreshToken = refreshTokenDao.findById(newProfile.getId());
         Assertions.assertEquals(GITHUB_ACCESS_TOKEN, savedGithubToken);
         Assertions.assertEquals(REFRESH_TOKEN, savedRefreshToken);
         Assertions.assertEquals(REFRESH_TOKEN, res.getRefreshToken());
@@ -87,8 +83,8 @@ public class AuthServiceTest {
         given(githubOauthClient.getGithubToken(anyString())).willReturn(GITHUB_ACCESS_TOKEN);
         given(githubOauthClient.getProfile(anyString())).willReturn(newProfile);
         given(userRepository.findById(newProfile.getId())).willReturn(Optional.of(user));
-        given(jwtUtils.createAccessToken(newProfile.getGithubId())).willReturn(ACCESS_TOKEN);
-        given(jwtUtils.createRefreshToken(newProfile.getGithubId())).willReturn(REFRESH_TOKEN);
+        given(jwtUtils.createAccessToken(newProfile.getId())).willReturn(ACCESS_TOKEN);
+        given(jwtUtils.createRefreshToken(newProfile.getId())).willReturn(REFRESH_TOKEN);
 
         LoginRes res = authService.login(OAUTH_CODE);
 
@@ -96,8 +92,8 @@ public class AuthServiceTest {
         then(githubOauthClient).should().getProfile(anyString());
         then(userRepository).should(never()).save(any());
 
-        String savedGithubToken = githubTokenDao.findByGithubId(newProfile.getGithubId());
-        String savedRefreshToken = refreshTokenDao.findByGithubId(newProfile.getGithubId());
+        String savedGithubToken = githubTokenDao.findById(newProfile.getId());
+        String savedRefreshToken = refreshTokenDao.findById(newProfile.getId());
         Assertions.assertEquals(GITHUB_ACCESS_TOKEN, savedGithubToken);
         Assertions.assertEquals(REFRESH_TOKEN, savedRefreshToken);
         Assertions.assertEquals(REFRESH_TOKEN, res.getRefreshToken());
@@ -107,21 +103,21 @@ public class AuthServiceTest {
     @Test
     void 토큰_갱신(){
         String userId = "user";
-        refreshTokenDao.save(userId, "refreshToken");
-        given(jwtUtils.parseUserId("accessToken")).willReturn("user");
-        given(jwtUtils.createAccessToken(anyString())).willReturn("accessToken");
-        given(jwtUtils.createRefreshToken(anyString())).willReturn("refreshToken");
+        refreshTokenDao.save(1L, "refreshToken");
+        given(jwtUtils.parseUserId("accessToken")).willReturn(1L);
+        given(jwtUtils.createAccessToken(anyLong())).willReturn("accessToken");
+        given(jwtUtils.createRefreshToken(anyLong())).willReturn("refreshToken");
 
         authService.reissue("accessToken", "refreshToken");
 
-        then(jwtUtils).should().createAccessToken("user");
+        then(jwtUtils).should().createAccessToken(1L);
     }
 
     @Test
     void 리프레시토큰_불일치로_토큰_갱신_실패(){
-        String userId = "user";
+        Long userId = 1L;
         refreshTokenDao.save(userId, "refreshToken");
-        given(jwtUtils.parseUserId("accessToken")).willReturn("user");
+        given(jwtUtils.parseUserId("accessToken")).willReturn(1L);
 
         assertThrows(RefreshTokenNotEqualsException.class,()->{
             authService.reissue("accessToken", "badRefreshToken");

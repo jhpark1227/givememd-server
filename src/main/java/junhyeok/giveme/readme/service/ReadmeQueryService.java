@@ -20,8 +20,8 @@ import java.util.List;
 public class ReadmeQueryService {
     private final ReadmeRepository readmeRepository;
     private final UserRepository userRepository;
-    public ListReadmeRes listReadmes(String userId){
-        User user = userRepository.findByGithubId(userId)
+    public ListReadmeRes listReadmes(Long userId){
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotExistException::new);
 
         List<Readme> entities = readmeRepository.findByUser(user);
@@ -29,7 +29,7 @@ public class ReadmeQueryService {
         return new ListReadmeRes(entities);
     }
 
-    public ReadReadmeRes readReadme(String userId, Long readmeId){
+    public ReadReadmeRes readReadme(Long userId, Long readmeId){
         if(!validateOwner(userId, readmeId)) throw new CanNotAccessReadmeException();
 
         Readme entity = readmeRepository.findById(readmeId)
@@ -38,8 +38,8 @@ public class ReadmeQueryService {
         return ReadReadmeRes.toDto(entity);
     }
 
-    public boolean validateOwner(String userId, Long readmeId){
-        User user = userRepository.findByGithubId(userId)
+    public boolean validateOwner(Long userId, Long readmeId){
+        User user = userRepository.findById(userId)
                 .orElseThrow(UserNotExistException::new);
 
         Readme readme = readmeRepository.findById(readmeId)

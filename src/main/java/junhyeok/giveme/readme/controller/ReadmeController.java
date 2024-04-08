@@ -1,5 +1,6 @@
 package junhyeok.giveme.readme.controller;
 
+import junhyeok.giveme.global.security.UserDetailsImpl;
 import junhyeok.giveme.readme.dto.ReadReadmeRes;
 import junhyeok.giveme.readme.dto.request.CreateReadmeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
@@ -10,10 +11,10 @@ import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
 import junhyeok.giveme.readme.service.ReadmeQueryService;
 import junhyeok.giveme.readme.service.ReadmeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController @RequestMapping("/api/readme")
 @RequiredArgsConstructor
@@ -22,9 +23,9 @@ public class ReadmeController {
     private final ReadmeQueryService readmeQueryService;
     @GetMapping("repos")
     public ResponseEntity<ReadRepositoriesRes> readRepositories(Authentication auth){
-        String userId = auth.getName();
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
 
-        ReadRepositoriesRes res = readmeService.readRepositories(userId);
+        ReadRepositoriesRes res = readmeService.readRepositories(user.getId());
 
         return ResponseEntity.ok().body(res);
     }
@@ -32,7 +33,9 @@ public class ReadmeController {
     @PostMapping
     public ResponseEntity<CreateReadmeRes> createReadme(
             Authentication auth, @RequestBody CreateReadmeReq req){
-        String userId = auth.getName();
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
+
+        Long userId = user.getId();
         String url = req.getUrl();
 
         CreateReadmeRes res = readmeService.createReadme(userId, url);
@@ -42,29 +45,32 @@ public class ReadmeController {
 
     @PostMapping("save")
     public ResponseEntity saveReadme(Authentication auth, @RequestBody SaveReadmeReq req){
-        String userId = auth.getName();
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
 
-        readmeService.saveReadme(userId, req);
+        readmeService.saveReadme(user.getId(), req);
 
         return ResponseEntity.created(null).build();
     }
 
     @GetMapping("list")
     public ListReadmeRes listReadmes(Authentication auth){
-        String userId = auth.getName();
-        return readmeQueryService.listReadmes(userId);
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
+
+        return readmeQueryService.listReadmes(user.getId());
     }
 
     @GetMapping("/{readmeId}")
     public ReadReadmeRes readReadme(Authentication auth, @PathVariable("readmeId") Long readmeId){
-        String userId = auth.getName();
-        return readmeQueryService.readReadme(userId, readmeId);
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
+
+        return readmeQueryService.readReadme(user.getId(), readmeId);
     }
 
     @PatchMapping("/{readmeId}")
     public ResponseEntity updateReadme(Authentication auth, @RequestBody UpdateReadmeReq req){
-        String userId = auth.getName();
-        readmeService.updateReadme(userId, req);
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
+
+        readmeService.updateReadme(user.getId(), req);
 
         return ResponseEntity.noContent().build();
     }

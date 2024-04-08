@@ -27,10 +27,10 @@ public class AuthService {
 
         updateOrCreateUser(newUserProfile);
 
-        String accessToken = jwtUtils.createAccessToken(newUserProfile.getGithubId());
-        String refreshToken = jwtUtils.createRefreshToken(newUserProfile.getGithubId());
+        String accessToken = jwtUtils.createAccessToken(newUserProfile.getId());
+        String refreshToken = jwtUtils.createRefreshToken(newUserProfile.getId());
 
-        saveTokens(newUserProfile.getGithubId(), githubToken, refreshToken);
+        saveTokens(newUserProfile.getId(), githubToken, refreshToken);
 
         return new LoginRes(accessToken, refreshToken);
     }
@@ -43,15 +43,15 @@ public class AuthService {
         );
     }
 
-    private void saveTokens(String githubId, String githubToken, String refreshToken){
-        githubTokenDao.save(githubId, githubToken);
-        refreshTokenDao.save(githubId, refreshToken);
+    private void saveTokens(Long userId, String githubToken, String refreshToken){
+        githubTokenDao.save(userId, githubToken);
+        refreshTokenDao.save(userId, refreshToken);
     }
 
     public ReissueRes reissue(String accessToken, String refreshToken){
-        String userId = jwtUtils.parseUserId(accessToken);
+        Long userId = jwtUtils.parseUserId(accessToken);
 
-        String savedRefreshToken = refreshTokenDao.findByGithubId(userId);
+        String savedRefreshToken = refreshTokenDao.findById(userId);
         if(!savedRefreshToken.equals(refreshToken)){
             throw new RefreshTokenNotEqualsException();
         }

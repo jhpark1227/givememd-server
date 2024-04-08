@@ -4,9 +4,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import junhyeok.giveme.user.entity.User;
+import junhyeok.giveme.user.exception.UserNotExistException;
+import junhyeok.giveme.user.repository.UserRepository;
 import junhyeok.giveme.user.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,15 +21,15 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = resolveToken(request.getHeader("Authorization"));
 
-        String userId = jwtUtils.validToken(request, token);
+        Long userId = jwtUtils.validToken(request, token);
         if(userId != null){
-            Authentication authentication = jwtUtils.getAuthentication(userId);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(getAuthentication(userId));
         }
 
         filterChain.doFilter(request,response);
@@ -38,5 +41,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else {
             return "";
         }
+    }
+
+    private UsernamePasswordAuthenticationToken getAuthentication(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotExistException::new);
+
+        UserDetailsImpl userDetails = UserDetailsImpl.builder()
+                                        .id(user.getId())
+                                        .role(user.getRole()).build();
+
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 }

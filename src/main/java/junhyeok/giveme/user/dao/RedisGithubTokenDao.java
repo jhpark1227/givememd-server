@@ -18,12 +18,12 @@ public class RedisGithubTokenDao implements GithubTokenDao {
     }
 
     @Override
-    public void save(String githubId, String token) {
-        valueOperations.set("GT:"+githubId, token, Duration.ofMillis(GITHUB_TOKEN_VALID_TIME));
+    public void save(Long id, String token) {
+        valueOperations.set("GT:"+id, token, Duration.ofMillis(GITHUB_TOKEN_VALID_TIME));
     }
 
     @Override
-    public String findByGithubId(String githubId) {
-        return valueOperations.get("GT:"+githubId);
+    public String findById(Long id) {
+        return valueOperations.get("GT:"+id);
     }
 }

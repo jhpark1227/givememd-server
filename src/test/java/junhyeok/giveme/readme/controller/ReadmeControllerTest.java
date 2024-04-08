@@ -1,5 +1,6 @@
 package junhyeok.giveme.readme.controller;
 
+import junhyeok.giveme.global.WithCustomMockUser;
 import junhyeok.giveme.global.config.SecurityConfig;
 import junhyeok.giveme.global.security.JwtAuthenticationEntryPoint;
 import junhyeok.giveme.global.security.JwtAuthenticationFilter;
@@ -13,6 +14,7 @@ import junhyeok.giveme.readme.service.ReadmeService;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
@@ -41,11 +43,11 @@ public class ReadmeControllerTest {
     @MockBean
     private ReadmeQueryService readmeQueryService;
 
-    @Test @WithMockUser
+    @Test @WithCustomMockUser
     void 리포지토리_목록_조회() throws Exception{
         RepositoryInfo repo1 = new RepositoryInfo("name1", "url");
         ReadRepositoriesRes res = new ReadRepositoriesRes(new RepositoryInfo[]{repo1});
-        BDDMockito.given(readmeService.readRepositories("user")).willReturn(res);
+        BDDMockito.given(readmeService.readRepositories(1L)).willReturn(res);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/readme/repos"))
                 .andDo(print())
@@ -53,12 +55,12 @@ public class ReadmeControllerTest {
                 .andExpect(jsonPath("$").exists());
     }
 
-    @Test @WithMockUser
+    @Test @WithCustomMockUser
     void 리드미_목록_조회() throws Exception{
         Readme readme1 = Readme.builder().id(1L).build();
         Readme readme2 = Readme.builder().id(2L).build();
         ListReadmeRes res = new ListReadmeRes(List.of(readme1, readme2));
-        BDDMockito.given(readmeQueryService.listReadmes("user")).willReturn(res);
+        BDDMockito.given(readmeQueryService.listReadmes(1L)).willReturn(res);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/readme/list"))
                 .andDo(print())
@@ -67,11 +69,11 @@ public class ReadmeControllerTest {
                 .andExpect(jsonPath("$.repos[1].readmeId").value(2L));
     }
 
-    @Test @WithMockUser
+    @Test @WithCustomMockUser
     void 리드미_조회()throws Exception{
         Readme readme1 = Readme.builder().id(1L).build();
         ReadReadmeRes res = ReadReadmeRes.toDto(readme1);
-        BDDMockito.given(readmeQueryService.readReadme("user", 1L)).willReturn(res);
+        BDDMockito.given(readmeQueryService.readReadme(1L, 1L)).willReturn(res);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/readme/1"))
                 .andDo(print())
