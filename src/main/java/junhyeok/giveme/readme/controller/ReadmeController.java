@@ -1,5 +1,6 @@
 package junhyeok.giveme.readme.controller;
 
+import junhyeok.giveme.readme.dto.ReadReadmeRes;
 import junhyeok.giveme.readme.dto.request.CreateReadmeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.response.CreateReadmeRes;
@@ -50,5 +51,11 @@ public class ReadmeController {
     public ListReadmeRes listReadmes(Authentication auth){
         String userId = auth.getName();
         return readmeQueryService.listReadmes(userId);
+    }
+
+    @GetMapping("/{readmeId}")
+    public ReadReadmeRes readReadme(Authentication auth, @PathVariable("readmeId") Long readmeId){
+        String userId = auth.getName();
+        return readmeQueryService.readReadme(userId, readmeId);
     }
 }

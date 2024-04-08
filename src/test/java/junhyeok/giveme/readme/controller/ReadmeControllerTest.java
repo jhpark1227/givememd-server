@@ -3,6 +3,7 @@ package junhyeok.giveme.readme.controller;
 import junhyeok.giveme.global.config.SecurityConfig;
 import junhyeok.giveme.global.security.JwtAuthenticationEntryPoint;
 import junhyeok.giveme.global.security.JwtAuthenticationFilter;
+import junhyeok.giveme.readme.dto.ReadReadmeRes;
 import junhyeok.giveme.readme.dto.response.ListReadmeRes;
 import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
 import junhyeok.giveme.readme.dto.response.RepositoryInfo;
@@ -64,5 +65,17 @@ public class ReadmeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.repos[0].readmeId").value(1L))
                 .andExpect(jsonPath("$.repos[1].readmeId").value(2L));
+    }
+
+    @Test @WithMockUser
+    void 리드미_조회()throws Exception{
+        Readme readme1 = Readme.builder().id(1L).build();
+        ReadReadmeRes res = ReadReadmeRes.toDto(readme1);
+        BDDMockito.given(readmeQueryService.readReadme("user", 1L)).willReturn(res);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/readme/1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));
     }
 }
