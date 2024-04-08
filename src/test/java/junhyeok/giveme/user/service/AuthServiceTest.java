@@ -1,5 +1,6 @@
 package junhyeok.giveme.user.service;
 
+import junhyeok.giveme.readme.entity.Readme;
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryGithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryRefreshTokenDao;
@@ -7,18 +8,23 @@ import junhyeok.giveme.user.dao.RefreshTokenDao;
 import junhyeok.giveme.user.dto.response.GithubProfile;
 import junhyeok.giveme.user.dto.response.LoginRes;
 import junhyeok.giveme.user.entity.User;
+import junhyeok.giveme.user.exception.RefreshTokenNotEqualsException;
 import junhyeok.giveme.user.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import junhyeok.giveme.user.utils.JwtUtils;
+import org.springframework.security.core.parameters.P;
 
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.*;
 
 
@@ -96,5 +102,29 @@ public class AuthServiceTest {
         Assertions.assertEquals(REFRESH_TOKEN, savedRefreshToken);
         Assertions.assertEquals(REFRESH_TOKEN, res.getRefreshToken());
         Assertions.assertEquals(ACCESS_TOKEN, res.getAccessToken());
+    }
+
+    @Test
+    void 토큰_갱신(){
+        String userId = "user";
+        refreshTokenDao.save(userId, "refreshToken");
+        given(jwtUtils.parseUserId("accessToken")).willReturn("user");
+        given(jwtUtils.createAccessToken(anyString())).willReturn("accessToken");
+        given(jwtUtils.createRefreshToken(anyString())).willReturn("refreshToken");
+
+        authService.reissue("accessToken", "refreshToken");
+
+        then(jwtUtils).should().createAccessToken("user");
+    }
+
+    @Test
+    void 리프레시토큰_불일치로_토큰_갱신_실패(){
+        String userId = "user";
+        refreshTokenDao.save(userId, "refreshToken");
+        given(jwtUtils.parseUserId("accessToken")).willReturn("user");
+
+        assertThrows(RefreshTokenNotEqualsException.class,()->{
+            authService.reissue("accessToken", "badRefreshToken");
+        });
     }
 }
