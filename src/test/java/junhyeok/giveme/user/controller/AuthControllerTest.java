@@ -1,5 +1,6 @@
 package junhyeok.giveme.user.controller;
 
+import junhyeok.giveme.global.WithCustomMockUser;
 import junhyeok.giveme.global.config.SecurityConfig;
 import junhyeok.giveme.global.security.JwtAuthenticationEntryPoint;
 import junhyeok.giveme.global.security.JwtAuthenticationFilter;
@@ -36,12 +37,12 @@ class AuthControllerTest {
     @MockBean
     private AuthService authService;
 
-    @Test @AutoConfigureMockMvc(addFilters = false)
+    @Test @WithCustomMockUser
     void 로그인() throws Exception {
         LoginRes res = new LoginRes(ACCESS_TOKEN, REFRESH_TOKEN);
         BDDMockito.given(authService.login(BDDMockito.anyString())).willReturn(res);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/auth/login?code="+OAUTH_CODE))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/auth/login?code="+OAUTH_CODE))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("accessToken").value(ACCESS_TOKEN))
