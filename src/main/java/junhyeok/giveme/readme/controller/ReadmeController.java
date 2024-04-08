@@ -3,7 +3,9 @@ package junhyeok.giveme.readme.controller;
 import junhyeok.giveme.readme.dto.request.CreateReadmeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.response.CreateReadmeRes;
+import junhyeok.giveme.readme.dto.response.ListReadmeRes;
 import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
+import junhyeok.giveme.readme.service.ReadmeQueryService;
 import junhyeok.giveme.readme.service.ReadmeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ReadmeController {
     private final ReadmeService readmeService;
+    private final ReadmeQueryService readmeQueryService;
     @GetMapping("repos")
     public ResponseEntity<ReadRepositoriesRes> readRepositories(Authentication auth){
         String userId = auth.getName();
@@ -43,4 +46,9 @@ public class ReadmeController {
         return ResponseEntity.created(null).build();
     }
 
+    @GetMapping("list")
+    public ListReadmeRes listReadmes(Authentication auth){
+        String userId = auth.getName();
+        return readmeQueryService.listReadmes(userId);
+    }
 }
