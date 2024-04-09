@@ -35,22 +35,33 @@ public class ReadmeService {
 
 
     public ReadRepositoriesRes readRepositories(Long userId){
-        String githubToken = githubTokenDao.findById(userId);
-
-        RepositoryInfo[] repos = githubClient.findRepositories(githubToken);
+        RepositoryInfo[] repos = loadRepositories(userId);
 
         return new ReadRepositoriesRes(repos);
     }
 
-    public CreateReadmeRes createReadme(Long userId, String url){
-        String repoName = url.split("/")[url.split("/").length-1];
+    private RepositoryInfo[] loadRepositories(Long userId){
+        String githubToken = githubTokenDao.findById(userId);
+
+        return githubClient.findRepositories(githubToken);
+    }
+
+    public CreateReadmeRes createReadme(Long userId, String repositoryName){
+        RepositoryInfo[] repos = loadRepositories(userId);
+
+        String url = null;
+        for(RepositoryInfo repo : repos){
+            if(repo.getName().equals(repositoryName)) url = repo.getUrl();
+        }
+        if(url==null) throw new NotExistRepositoryException();
+
         String token = githubTokenDao.findById(userId);
 
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("system","You are a helpful assistant for summarizing project codes."));
 
         collectSummary(messages, token, url+"/contents");
-        return new CreateReadmeRes(repoName, summarizeProject(messages));
+        return new CreateReadmeRes(repositoryName, summarizeProject(messages));
     }
 
     private String summarizeProject(List<Message> messages){

@@ -36,9 +36,9 @@ public class ReadmeController {
         UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
 
         Long userId = user.getId();
-        String url = req.getUrl();
+        String repositoryName = req.getName();
 
-        CreateReadmeRes res = readmeService.createReadme(userId, url);
+        CreateReadmeRes res = readmeService.createReadme(userId, repositoryName);
 
         return ResponseEntity.ok().body(res);
     }

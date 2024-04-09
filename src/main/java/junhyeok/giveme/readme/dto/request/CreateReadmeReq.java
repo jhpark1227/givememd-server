@@ -6,5 +6,5 @@ import lombok.NoArgsConstructor;
 
 @Getter @AllArgsConstructor @NoArgsConstructor
 public class CreateReadmeReq {
-    private String url;
+    private String name;
 }
