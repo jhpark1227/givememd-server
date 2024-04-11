@@ -24,7 +24,7 @@ public class GithubClient {
         HttpEntity entity = new HttpEntity(null, headers);
 
         ResponseEntity<RepositoryInfo[]> responseEntity = restTemplate.exchange(
-                "https://api.github.com/user/repos",
+                "https://api.github.com/user/repos?type=owner",
                 HttpMethod.GET,
                 entity,
                 RepositoryInfo[].class
