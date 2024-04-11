@@ -11,4 +11,5 @@ public class FileRes {
     private String type;
     @JsonProperty("download_url")
     private String downloadUrl;
+    private String sha;
 }

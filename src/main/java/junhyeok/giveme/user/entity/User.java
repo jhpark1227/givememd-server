@@ -14,6 +14,8 @@ public class User {
 
     private String githubId;
 
+    private String email;
+
     private String name;
 
     private String image;
@@ -22,17 +24,19 @@ public class User {
     @Column(columnDefinition = "VARCHAR(15) DEFAULT 'USER'")
     private Role role;
 
-    public User(GithubProfile profile){
+    public User(GithubProfile profile, String email){
         this.id = profile.getId();
         this.githubId = profile.getGithubId();
         this.name = profile.getName();
         this.image = profile.getImage();
         this.role = Role.USER;
+        this.email = email;
     }
 
-    public void changeProfile(GithubProfile profile){
+    public void changeProfile(GithubProfile profile, String email){
         this.githubId = profile.getGithubId();
         this.name = profile.getName();
         this.image = profile.getImage();
+        this.email = email;
     }
 }

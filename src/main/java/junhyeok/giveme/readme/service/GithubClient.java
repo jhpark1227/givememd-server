@@ -1,6 +1,9 @@
 package junhyeok.giveme.readme.service;
 
+import junhyeok.giveme.readme.dto.request.CommitFileReq;
 import junhyeok.giveme.readme.dto.response.FileRes;
+import junhyeok.giveme.readme.dto.CommitFileDto;
+import junhyeok.giveme.readme.dto.LoadFileInfoDto;
 import junhyeok.giveme.user.exception.ExternalApiErrorException;
 import junhyeok.giveme.readme.dto.response.RepositoryInfo;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +70,44 @@ public class GithubClient {
             throw new ExternalApiErrorException();
         }
 
+        return res.getBody();
+    }
+
+    public void commitFile(CommitFileDto req){
+
+        CommitFileReq requestBody = CommitFileReq.builder()
+                .message(req.getMessage())
+                .author(req.getAuthor())
+                .content(req.getContent())
+                .sha(req.getSha()).build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer "+req.getAccessToken());
+        HttpEntity request = new HttpEntity(requestBody, headers);
+
+        String url = "https://api.github.com/repos/"+ req.getAuthor().getName()+"/"+req.getRepositoryName()+"/contents/"+req.getFileName();
+
+        try{
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    request,
+                    Object.class
+            );
+        } catch (Exception e){
+            throw new ExternalApiErrorException();
+        }
+    }
+
+    public FileRes loadFileInfo(LoadFileInfoDto dto){
+        String url = "https://api.github.com/repos/"+dto.getGithubId()+"/"+dto.getRepositoryName()+"/contents"+dto.getFileName();
+
+        ResponseEntity<FileRes> res;
+        try{
+            res = restTemplate.getForEntity(url, FileRes.class);
+        }catch (Exception e){
+            return null;
+        }
         return res.getBody();
     }
 }

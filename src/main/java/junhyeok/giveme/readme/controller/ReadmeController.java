@@ -1,6 +1,7 @@
 package junhyeok.giveme.readme.controller;
 
 import junhyeok.giveme.global.security.UserDetailsImpl;
+import junhyeok.giveme.readme.dto.request.CommitReadMeReq;
 import junhyeok.giveme.readme.dto.ReadReadmeRes;
 import junhyeok.giveme.readme.dto.request.CreateReadmeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
@@ -73,5 +74,13 @@ public class ReadmeController {
         readmeService.updateReadme(user.getId(), readmeId, req.getContent());
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/commit")
+    public ResponseEntity commitReadme(Authentication auth, @RequestBody CommitReadMeReq req){
+        UserDetailsImpl user = (UserDetailsImpl) auth.getPrincipal();
+        readmeService.commitReadme(user.getId(), req);
+
+        return ResponseEntity.created(null).build();
     }
 }
