@@ -1,5 +1,8 @@
 package junhyeok.giveme.readme.service;
 
+import junhyeok.giveme.readme.dto.CommitFileDto;
+import junhyeok.giveme.readme.dto.LoadFileInfoDto;
+import junhyeok.giveme.readme.dto.request.CommitReadMeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.request.UpdateReadmeReq;
 import junhyeok.giveme.readme.entity.Readme;
@@ -21,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -96,5 +100,24 @@ public class ReadmeServiceTest {
         readmeService.updateReadme(1L,1L, req.getContent());
 
         Assertions.assertEquals("newReadme", readme.getContent());
+    }
+
+    @Test
+    void 새로운_파일_커밋(){
+        given(githubTokenDao.findById(1L)).willReturn("token");
+        RepositoryInfo info = new RepositoryInfo("repo1", "url1");
+        given(githubClient.findRepositories("token")).willReturn(new RepositoryInfo[]{info});
+        User user = User.builder().id(1L).githubId("githubId").email("email").build();
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(githubClient.loadFileInfo(any())).willReturn(null);
+
+        ArgumentCaptor<CommitFileDto> captor = ArgumentCaptor.forClass(CommitFileDto.class);
+
+        CommitReadMeReq req = new CommitReadMeReq("repo1", "content1");
+        readmeService.commitReadme(1L, req);
+
+        then(githubClient).should().commitFile(captor.capture());
+        Assertions.assertEquals("repo1",captor.getValue().getRepositoryName());
+        Assertions.assertNull(captor.getValue().getSha());
     }
 }

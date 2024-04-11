@@ -1,9 +1,8 @@
 package junhyeok.giveme.readme.service;
 
-import jakarta.transaction.Transactional;
+import junhyeok.giveme.readme.dto.request.CommitReadMeReq;
 import junhyeok.giveme.readme.dto.request.Message;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
-import junhyeok.giveme.readme.dto.request.UpdateReadmeReq;
 import junhyeok.giveme.readme.dto.response.*;
 import junhyeok.giveme.readme.entity.Readme;
 import junhyeok.giveme.readme.exception.CanNotAccessReadmeException;
@@ -11,11 +10,15 @@ import junhyeok.giveme.readme.exception.NotExistRepositoryException;
 import junhyeok.giveme.readme.exception.ReadmeExistException;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.dao.GithubTokenDao;
+import junhyeok.giveme.readme.dto.CommitFileDto;
+import junhyeok.giveme.readme.dto.LoadFileInfoDto;
 import junhyeok.giveme.user.entity.User;
 import junhyeok.giveme.user.exception.UserNotExistException;
 import junhyeok.giveme.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +35,8 @@ public class ReadmeService {
     private final ReadmeQueryService readmeQueryService;
 
     private static final String[] extensionList = {"java","js","html","py","c","cpp","php","swift","go","r","kt","rs","ts"};
-
+    private static final String readmeFileName = "README.md";
+    private static final String commitMessage = "Update README.md";
 
     public ReadRepositoriesRes readRepositories(Long userId){
         RepositoryInfo[] repos = loadRepositories(userId);
@@ -99,6 +103,7 @@ public class ReadmeService {
 
     private String summarizeFile(String token, String url){
         String file = githubClient.readFile(token, url);
+
         Message message = new Message("user", "Summarize this: "+file);
 
         String res = openAiClient.sendMessage(Arrays.asList(message));
@@ -140,5 +145,36 @@ public class ReadmeService {
                         .orElseThrow(ReadmeExistException::new);
 
         readme.changeContent(content);
+    }
+
+    public void commitReadme(Long userId, CommitReadMeReq req){
+        verifyRepositoryName(userId, req.getRepositoryName());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotExistException::new);
+
+        String accessToken = githubTokenDao.findById(userId);
+
+        FileRes file = githubClient.loadFileInfo(
+                    LoadFileInfoDto.builder()
+                    .accessToken(accessToken)
+                    .githubId(user.getGithubId())
+                    .repositoryName(req.getRepositoryName())
+                    .fileName(readmeFileName).build()
+        );
+
+        CommitFileDto dto = CommitFileDto.builder()
+                .accessToken(accessToken)
+                .repositoryName(req.getRepositoryName())
+                .fileName(readmeFileName)
+                .message(commitMessage)
+                .author(new CommitFileDto.Author(user.getGithubId(), user.getEmail()))
+                .content(Base64.encodeBase64String(req.getContent().getBytes())).build();
+
+        if(file!=null){
+            dto.addSha(file.getSha());
+        }
+
+        githubClient.commitFile(dto);
     }
 }
