@@ -4,6 +4,7 @@ import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryGithubTokenDao;
 import junhyeok.giveme.user.dao.MemoryRefreshTokenDao;
 import junhyeok.giveme.user.dao.RefreshTokenDao;
+import junhyeok.giveme.user.dto.response.GithubEmailRes;
 import junhyeok.giveme.user.dto.response.GithubProfile;
 import junhyeok.giveme.user.dto.response.LoginRes;
 import junhyeok.giveme.user.entity.User;
@@ -57,6 +58,8 @@ public class AuthServiceTest {
 
         given(githubOauthClient.getGithubToken(anyString())).willReturn(GITHUB_ACCESS_TOKEN);
         given(githubOauthClient.getProfile(anyString())).willReturn(newProfile);
+        GithubEmailRes emailInfo = new GithubEmailRes("email",true, true, "");
+        given(githubOauthClient.loadGithubEmail(GITHUB_ACCESS_TOKEN)).willReturn(new GithubEmailRes[]{emailInfo});
         given(userRepository.findById(newProfile.getId())).willReturn(Optional.empty());
         given(jwtUtils.createAccessToken(newProfile.getId())).willReturn(ACCESS_TOKEN);
         given(jwtUtils.createRefreshToken(newProfile.getId())).willReturn(REFRESH_TOKEN);
@@ -82,6 +85,8 @@ public class AuthServiceTest {
 
         given(githubOauthClient.getGithubToken(anyString())).willReturn(GITHUB_ACCESS_TOKEN);
         given(githubOauthClient.getProfile(anyString())).willReturn(newProfile);
+        GithubEmailRes emailInfo = new GithubEmailRes("email",true, true, "");
+        given(githubOauthClient.loadGithubEmail(GITHUB_ACCESS_TOKEN)).willReturn(new GithubEmailRes[]{emailInfo});
         given(userRepository.findById(newProfile.getId())).willReturn(Optional.of(user));
         given(jwtUtils.createAccessToken(newProfile.getId())).willReturn(ACCESS_TOKEN);
         given(jwtUtils.createRefreshToken(newProfile.getId())).willReturn(REFRESH_TOKEN);
