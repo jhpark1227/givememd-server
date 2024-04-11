@@ -1,6 +1,7 @@
 package junhyeok.giveme.user.service;
 
 import junhyeok.giveme.user.dto.request.GithubTokenReq;
+import junhyeok.giveme.user.dto.response.GithubEmailRes;
 import junhyeok.giveme.user.dto.response.GithubProfile;
 import junhyeok.giveme.user.dto.response.GithubTokenRes;
 import junhyeok.giveme.user.exception.ExternalApiErrorException;
@@ -58,5 +59,26 @@ public class GithubOauthClient {
         }
 
         return response.getBody();
+    }
+
+    public GithubEmailRes[] loadGithubEmail(String token){
+        String url = "https://api.github.com/user/emails";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer "+token);
+        HttpEntity entity = new HttpEntity(headers);
+
+        ResponseEntity<GithubEmailRes[]> res;
+        try{
+            res = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    GithubEmailRes[].class
+            );
+        } catch (Exception e){
+            return null;
+        }
+
+        return res.getBody();
     }
 }
