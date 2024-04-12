@@ -26,4 +26,9 @@ public class RedisGithubTokenDao implements GithubTokenDao {
     public String findById(Long id) {
         return valueOperations.get("GT:"+id);
     }
+
+    @Override
+    public void delete(Long id){
+        valueOperations.getAndDelete("GT:"+id);
+    }
 }

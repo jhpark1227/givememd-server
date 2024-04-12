@@ -4,4 +4,6 @@ public interface GithubTokenDao {
     void save(Long id, String token);
 
     String findById(Long id);
+
+    void delete(Long id);
 }
