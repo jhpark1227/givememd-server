@@ -15,7 +15,7 @@ public class Readme {
 
     private String name;
 
-    @ManyToOne @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "user_id")
     private User user;
 
     public void changeContent(String content){
