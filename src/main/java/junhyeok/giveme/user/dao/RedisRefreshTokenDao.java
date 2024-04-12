@@ -25,4 +25,9 @@ public class RedisRefreshTokenDao implements RefreshTokenDao {
     public String findById(Long id) {
         return valueOperations.get("RT:"+id);
     }
+
+    @Override
+    public void delete(Long id){
+        valueOperations.getAndDelete("RT:"+id);
+    }
 }

@@ -83,4 +83,9 @@ public class AuthService {
     private void updateRefreshToken(Long userId, String refreshToken){
         refreshTokenDao.save(userId, refreshToken);
     }
+
+    public void logout(Long userId){
+        githubTokenDao.delete(userId);
+        refreshTokenDao.delete(userId);
+    }
 }

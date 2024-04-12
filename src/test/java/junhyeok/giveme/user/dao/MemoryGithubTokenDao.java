@@ -14,4 +14,9 @@ public class MemoryGithubTokenDao implements GithubTokenDao {
     public String findById(Long id) {
         return tokens.get(id);
     }
+
+    @Override
+    public void delete(Long id){
+        tokens.remove(id);
+    }
 }
