@@ -35,7 +35,7 @@ jobs:
 
     - name: Make application.yml
       run: |
-         sudo mkdir ./src/main/resources
+         mkdir ./src/main/resources
          cd ./src/main/resources
          touch ./application.yml
          echo "${{ secrets.PROPERTIES }}" > ./application.yml
