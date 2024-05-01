@@ -41,10 +41,9 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String createRefreshToken(Long payload){
+    public String createRefreshToken(){
         Date now = new Date();
         return Jwts.builder()
-                .claim("id", payload)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+REFRESH_TOKEN_VALID_TIME))
                 .signWith(key)
@@ -57,6 +56,8 @@ public class JwtUtils {
                     Jwts.parserBuilder().setSigningKey(key).build()
                     .parseClaimsJws(token)
                     .getBody().get("id", Long.class);
+
+            if(userId == null) throw new Exception();
 
             return userId;
         } catch (ExpiredJwtException e) {
