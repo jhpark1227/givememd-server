@@ -62,7 +62,7 @@ public class AuthServiceTest {
         given(githubOauthClient.loadGithubEmail(GITHUB_ACCESS_TOKEN)).willReturn(new GithubEmailRes[]{emailInfo});
         given(userRepository.findById(newProfile.getId())).willReturn(Optional.empty());
         given(jwtUtils.createAccessToken(newProfile.getId())).willReturn(ACCESS_TOKEN);
-        given(jwtUtils.createRefreshToken(newProfile.getId())).willReturn(REFRESH_TOKEN);
+        given(jwtUtils.createRefreshToken()).willReturn(REFRESH_TOKEN);
 
         LoginRes res = authService.login(OAUTH_CODE);
 
@@ -89,7 +89,7 @@ public class AuthServiceTest {
         given(githubOauthClient.loadGithubEmail(GITHUB_ACCESS_TOKEN)).willReturn(new GithubEmailRes[]{emailInfo});
         given(userRepository.findById(newProfile.getId())).willReturn(Optional.of(user));
         given(jwtUtils.createAccessToken(newProfile.getId())).willReturn(ACCESS_TOKEN);
-        given(jwtUtils.createRefreshToken(newProfile.getId())).willReturn(REFRESH_TOKEN);
+        given(jwtUtils.createRefreshToken()).willReturn(REFRESH_TOKEN);
 
         LoginRes res = authService.login(OAUTH_CODE);
 
@@ -111,7 +111,7 @@ public class AuthServiceTest {
         refreshTokenDao.save(1L, "refreshToken");
         given(jwtUtils.parseUserId("accessToken")).willReturn(1L);
         given(jwtUtils.createAccessToken(anyLong())).willReturn("newAccessToken");
-        given(jwtUtils.createRefreshToken(anyLong())).willReturn("newRefreshToken");
+        given(jwtUtils.createRefreshToken()).willReturn("newRefreshToken");
 
         authService.reissue("accessToken", "refreshToken");
 

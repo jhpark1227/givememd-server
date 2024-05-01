@@ -11,7 +11,7 @@ class JwtUtilsTest {
     @Test
     void 토큰_생성(){
         String accessToken = jwtUtils.createAccessToken(1L);
-        String refreshToken = jwtUtils.createRefreshToken(1L);
+        String refreshToken = jwtUtils.createRefreshToken();
     }
 
 }

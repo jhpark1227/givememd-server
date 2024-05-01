@@ -32,7 +32,7 @@ public class AuthService {
         updateOrCreateUser(newUserProfile, email);
 
         String accessToken = jwtUtils.createAccessToken(newUserProfile.getId());
-        String refreshToken = jwtUtils.createRefreshToken(newUserProfile.getId());
+        String refreshToken = jwtUtils.createRefreshToken();
 
         saveTokens(newUserProfile.getId(), githubToken, refreshToken);
 
@@ -73,7 +73,7 @@ public class AuthService {
             throw new RefreshTokenNotEqualsException();
         }
         String newAccessToken = jwtUtils.createAccessToken(userId);
-        String newRefreshToken = jwtUtils.createRefreshToken(userId);
+        String newRefreshToken = jwtUtils.createRefreshToken();
 
         updateRefreshToken(userId, newRefreshToken);
 
