@@ -3,6 +3,7 @@ package junhyeok.giveme.readme.service;
 import junhyeok.giveme.readme.dto.request.ChatReq;
 import junhyeok.giveme.readme.dto.request.Message;
 import junhyeok.giveme.readme.dto.response.ChatRes;
+import junhyeok.giveme.user.exception.ExternalApiErrorException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -32,12 +33,16 @@ public class OpenAiClient {
         headers.add("Authorization","Bearer "+token);
         HttpEntity entity = new HttpEntity(new ChatReq(model, messages), headers);
 
-        ChatRes res = restTemplate.postForObject(
-                "https://api.openai.com/v1/chat/completions",
-                entity,
-                ChatRes.class
-        );
+        try{
+            ChatRes res = restTemplate.postForObject(
+                    "https://api.openai.com/v1/chat/completions",
+                    entity,
+                    ChatRes.class
+            );
 
-        return res.getChoices().get(0).getMessage().getContent();
+            return res.getChoices().get(0).getMessage().getContent();
+        } catch (Exception e){
+            throw new ExternalApiErrorException();
+        }
     }
 }
