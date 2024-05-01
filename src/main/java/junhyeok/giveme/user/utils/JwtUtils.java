@@ -57,6 +57,8 @@ public class JwtUtils {
                     .parseClaimsJws(token)
                     .getBody().get("id", Long.class);
 
+            if(userId == null) throw new Exception();
+
             return userId;
         } catch (ExpiredJwtException e) {
             request.setAttribute("exception", AuthExceptions.TOKEN_EXPIRED);
