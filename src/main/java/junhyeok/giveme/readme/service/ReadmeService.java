@@ -29,6 +29,7 @@ import java.util.List;
 public class ReadmeService {
     private final GithubClient githubClient;
     private final OpenAiClient openAiClient;
+    private final EvaluationService evaluationService;
     private final GithubTokenDao githubTokenDao;
     private final ReadmeRepository readmeRepository;
     private final UserRepository userRepository;
@@ -65,7 +66,12 @@ public class ReadmeService {
         messages.add(new Message("system","You are a helpful assistant for summarizing project codes."));
 
         collectSummary(messages, token, url+"/contents");
-        return new CreateReadmeRes(repositoryName, summarizeProject(messages));
+
+        String readme = summarizeProject(messages);
+
+        evaluationService.saveEvaluation(url, readme);
+
+        return new CreateReadmeRes(repositoryName, readme);
     }
 
     private String summarizeProject(List<Message> messages){
