@@ -6,6 +6,7 @@ import junhyeok.giveme.readme.dto.request.CommitReadMeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.request.UpdateReadmeReq;
 import junhyeok.giveme.readme.entity.Readme;
+import junhyeok.giveme.readme.repository.EvaluationRepository;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
@@ -50,10 +51,13 @@ public class ReadmeServiceTest {
     @Mock
     ReadmeQueryService readmeQueryService;
 
+    @Mock
+    EvaluationService evaluationService;
+
 
     @BeforeEach
     void setUp(){
-        readmeService = new ReadmeService(githubClient, openAiClient, githubTokenDao,readmeRepository,userRepository,readmeQueryService);
+        readmeService = new ReadmeService(githubClient, openAiClient, evaluationService, githubTokenDao,readmeRepository, userRepository,readmeQueryService);
     }
 
     @Test
