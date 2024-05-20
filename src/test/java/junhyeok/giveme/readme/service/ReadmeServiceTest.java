@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -140,8 +141,9 @@ public class ReadmeServiceTest {
         fileRes[2] = new FileRes("file3.js", "file", "url1", null);
         fileRes[3] = new FileRes("file4.js", "file", "url1", null);
         fileRes[4] = new FileRes("file5.js", "file", "url1", null);
+
+        given(readmeAsyncService.summarizeFile("token","url1")).willReturn(CompletableFuture.completedFuture("response"));
         given(githubClient.readDirectory(anyString(),anyString())).willReturn(fileRes);
-        given(githubClient.readFile("token","url1")).willReturn("content1");
         given(openAiClient.sendMessage(any())).willReturn("response");
 
         readmeService.createReadme(1L, "repo1");
