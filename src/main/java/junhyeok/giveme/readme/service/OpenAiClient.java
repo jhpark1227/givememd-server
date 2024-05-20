@@ -31,7 +31,7 @@ public class OpenAiClient {
     public String sendMessage(List<Message> messages){
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization","Bearer "+token);
-        HttpEntity entity = new HttpEntity(new ChatReq(model, messages), headers);
+        HttpEntity entity = new HttpEntity(new ChatReq(model, messages, 4096, 0), headers);
 
         try{
             ChatRes res = restTemplate.postForObject(

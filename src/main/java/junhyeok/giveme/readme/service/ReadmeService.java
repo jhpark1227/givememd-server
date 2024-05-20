@@ -23,18 +23,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service @Transactional
 @RequiredArgsConstructor
 public class ReadmeService {
     private final GithubClient githubClient;
     private final OpenAiClient openAiClient;
+    private final EvaluationService evaluationService;
     private final GithubTokenDao githubTokenDao;
     private final ReadmeRepository readmeRepository;
     private final UserRepository userRepository;
     private final ReadmeQueryService readmeQueryService;
+    private final ReadmeAsyncService readmeAsyncService;
 
-    private static final String[] extensionList = {"java","js","html","py","c","cpp","php","swift","go","r","kt","rs","ts"};
+    private static final String[] extensionList = {"java","js","html","py","c","cpp","php","swift","go","r","kt","rs","ts","gradle"};
     private static final String readmeFileName = "README.md";
     private static final String commitMessage = "Update README.md";
 
@@ -61,53 +65,75 @@ public class ReadmeService {
 
         String token = githubTokenDao.findById(userId);
 
-        List<Message> messages = new ArrayList<>();
-        messages.add(new Message("system","You are a helpful assistant for summarizing project codes."));
+        List<CompletableFuture<String>> responses = new ArrayList<>();
+        collectSummary(responses, token, url+"/contents");
 
-        collectSummary(messages, token, url+"/contents");
-        return new CreateReadmeRes(repositoryName, summarizeProject(messages));
+        CompletableFuture<List<String>> result = CompletableFuture.allOf(responses.toArray(new CompletableFuture[0]))
+                .thenApply(v -> responses.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+
+        List<Message> messages = new ArrayList<>(result.join().stream().map(x->new Message("user",x)).toList());
+
+        String readme = summarizeProject(messages);
+
+        evaluationService.saveEvaluation(url, readme);
+
+        return new CreateReadmeRes(repositoryName, readme);
     }
 
-    private String summarizeProject(List<Message> messages){
-        messages.add(new Message("system", "너는 소스 코드의 내용을 요약한 텍스트들을 제공하면 그걸 바탕으로 깃허브 readme.md 파일로 만들어주는 챗봇이다. 프로젝트에 대한 설명,목차,설치 및 실행방법, 핵심 기능, 기술스택(개발 언어, 개발 환경, 클라우드)을 어떤 것들을 쓰는지 중점적으로 파악하고 이것들을 중심으로 마크다운 문법을 지키며 readme.md 파일을 작성 후 사용자에게 전달해야해"));
-        messages.add(new Message("user","이 요약된 글들을 보고 readme.md 파일을 만들어줘."));
+    private String summarizeProject(List<Message> summaries){
+        List<Message> segments = new ArrayList<>();
 
-        String res = openAiClient.sendMessage(messages);
+        final int MAX_CHARACTERS = 10000;
 
-        return res;
-    }
-
-    private void collectSummary(List<Message>messages, String token, String url){
-        FileRes[] files = githubClient.readDirectory(token, url);
-
-        for(int i=0;i<files.length;i++){
-
-            FileRes file = files[i];
-            String name = file.getName();
-            String type = file.getType();
-
-            if(type.equals("file")){
-                if(name.split("\\.").length!=2) continue;
-
-                String extension = name.split("\\.")[1];
-                String downloadUrl = file.getDownloadUrl();
-
-                if(Arrays.asList(extensionList).contains(extension)){
-                    messages.add(new Message("user", summarizeFile(token, downloadUrl)));
-                }
-            }else if(type.equals("dir")){
-                collectSummary(messages, token, url+"/"+name);
+        String code = "";
+        for(Message summary : summaries){
+            int summaryLength = summary.getContent().length();
+            if (code.length() + summaryLength <= MAX_CHARACTERS){
+                code = code +'\n' + summary.getContent();
+            }
+            else{
+                segments.add(new Message("system", "프로젝트에 대한 소개 및 실행방법, 핵심 기능, 기술스택(개발 언어, 개발 환경, 클라우드)을 어떤 것들을 쓰는지 중점적으로 파악하고 이것들을 중심으로 마크다운 문법을 지키며 readme.md 파일을 작성 후 사용자에게 전달해야해. 항목,소제목마다 아이콘과 이모티콘을 사용해야하고 기술스택은 배지를 통해 적어야만 해."+code));
+                code = "";
             }
         }
+
+        List<Message> messages = new ArrayList<>();
+        for(Message segment : segments){
+            String script = openAiClient.sendMessage(List.of(segment));
+
+            messages.add(new Message("user", script));
+        }
+
+        messages.add(new Message("system", "여러개로 된 readme를 보고 배지, 아이콘을 적극 사용해서 아주 자세히 하나의 readme로 만들어줘. 기술스택은 무조건 배지로 해줘."));
+
+        return openAiClient.sendMessage(messages);
     }
 
-    private String summarizeFile(String token, String url){
-        String file = githubClient.readFile(token, url);
+    private void collectSummary(List<CompletableFuture<String>> responses, String token, String url){
+        FileRes[] files = githubClient.readDirectory(token, url);
+        try{
+            for(int i=0;i<files.length;i++){
 
-        Message message = new Message("user", "Summarize this: "+file);
+                FileRes file = files[i];
+                String name = file.getName();
+                String type = file.getType();
 
-        String res = openAiClient.sendMessage(Arrays.asList(message));
-        return res;
+                if(type.equals("file")){
+                    if(name.split("\\.").length!=2) continue;
+
+                    String extension = name.split("\\.")[1];
+                    String downloadUrl = file.getDownloadUrl();
+
+                    if(Arrays.asList(extensionList).contains(extension)){
+                        responses.add(readmeAsyncService.summarizeFile(token, downloadUrl));
+                    }
+                }else if(type.equals("dir")){
+                    collectSummary(responses, token, url+"/"+name);
+                }
+            }
+        }catch (Exception e){
+            e.getStackTrace();
+        }
     }
 
     public void saveReadme(Long userId, SaveReadmeReq req){
@@ -130,7 +156,6 @@ public class ReadmeService {
         String token = githubTokenDao.findById(userId);
 
         RepositoryInfo[] repos = githubClient.findRepositories(token);
-        Arrays.stream(repos).forEach(repo->System.out.println(repo.getName()));
         if(!Arrays.stream(repos).anyMatch(repo->repo.getName().equals(repoName))){
             throw new NotExistRepositoryException();
         }
