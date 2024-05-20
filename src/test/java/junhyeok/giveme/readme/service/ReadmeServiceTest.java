@@ -141,6 +141,7 @@ public class ReadmeServiceTest {
         fileRes[2] = new FileRes("file3.js", "file", "url1", null);
         fileRes[3] = new FileRes("file4.js", "file", "url1", null);
         fileRes[4] = new FileRes("file5.js", "file", "url1", null);
+
         given(readmeAsyncService.summarizeFile("token","url1")).willReturn(CompletableFuture.completedFuture("response"));
         given(githubClient.readDirectory(anyString(),anyString())).willReturn(fileRes);
         given(openAiClient.sendMessage(any())).willReturn("response");
