@@ -44,7 +44,6 @@ public class AuthService {
         userRepository.findById(id).ifPresentOrElse(
                         user -> {
                             user.changeProfile(newUserProfile, email);
-                            System.out.println("user changed");
                         },
                         () -> userRepository.save(new User(newUserProfile, email))
         );

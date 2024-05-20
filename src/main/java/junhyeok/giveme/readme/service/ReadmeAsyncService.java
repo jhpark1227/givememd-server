@@ -21,7 +21,8 @@ public class ReadmeAsyncService {
         String file = githubClient.readFile(token, url);
         List<Message> messages = new ArrayList<>();
 
-        messages.add(new Message("user", "이 파일의 핵심만 추출하라: "+file));
+        messages.add(new Message("system", "해당 코드를 읽고 프로젝트 소개, 기술 스택, 사용법 등을 중심으로 요약해줘"));
+        messages.add(new Message("user", file));
 
         String res = openAiClient.sendMessage(messages);
 
