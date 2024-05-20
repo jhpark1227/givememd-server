@@ -73,34 +73,44 @@ public class ReadmeService {
 
         List<Message> messages = new ArrayList<>(result.join().stream().map(x->new Message("user",x)).toList());
 
-        String readme = convertToReadme(summarizeProject(messages));
+        String readme = summarizeProject(messages);
 
         evaluationService.saveEvaluation(url, readme);
 
         return new CreateReadmeRes(repositoryName, readme);
     }
 
-    private String summarizeProject(List<Message> messages){
-        messages.add(new Message("system", "너는 각 소스코드 파일의 내용을 담은 다수의 메시지를 읽고 전체 프로젝트의 정보를 한국어로 제시하는 챗봇이다."));
-        messages.add(new Message("user","위 문장들을 읽어보고 응답의 목차, 전체 프로젝트의 설명, 설치 및 실행방법, 5~10개 정도의 핵심 기능, 기술스택(언어, 개발 환경, 클라우드)을 자세하게 파악해서 다음 형식에 맞춰 작성해줘. 1.목차:<목차>, 2.설명:<전체 프로젝트의 설명>, 3.설치 및 실행 방법:<설치 및 실행방법>, 4.핵심 기능:1.<추출할 기능1> 2.<추출할 기능2> 3.<추출할 기능1> 4.<추출할 기능4> 5.<추출할 기능5>, 5.기술 스택:5-1.언어:<추출할 개발언어> 5-2.개발환경:<추출할 개발환경> 5-3.클라우드:<추출할 클라우드>"));
+    private String summarizeProject(List<Message> summaries){
+        List<Message> segments = new ArrayList<>();
 
-        String res = openAiClient.sendMessage(messages);
+        final int MAX_CHARACTERS = 10000;
 
-        return res;
-    }
+        String code = "";
+        for(Message summary : summaries){
+            int summaryLength = summary.getContent().length();
+            if (code.length() + summaryLength <= MAX_CHARACTERS){
+                code = code +'\n' + summary.getContent();
+            }
+            else{
+                segments.add(new Message("system", "프로젝트에 대한 소개 및 실행방법, 핵심 기능, 기술스택(개발 언어, 개발 환경, 클라우드)을 어떤 것들을 쓰는지 중점적으로 파악하고 이것들을 중심으로 마크다운 문법을 지키며 readme.md 파일을 작성 후 사용자에게 전달해야해. 항목,소제목마다 아이콘과 이모티콘을 사용해야하고 기술스택은 배지를 통해 적어야만 해."+code));
+                code = "";
+            }
+        }
 
-    private String convertToReadme(String summary){
         List<Message> messages = new ArrayList<>();
-        messages.add(new Message("system", "너는 프로젝트의 정보를 읽고 Readme.md 마크다운으로 변환하는 챗봇이다."));
-        messages.add(new Message("user", "세 개의 백틱으로 구분된 프로젝트 정보를 읽고 Readme.md 마크다운으로 변환해줘. 프로젝트 정보 : ```"+summary+"```"));
-        String res = openAiClient.sendMessage(new ArrayList<>(messages));
+        for(Message segment : segments){
+            String script = openAiClient.sendMessage(List.of(segment));
 
-        return res;
+            messages.add(new Message("user", script));
+        }
+
+        messages.add(new Message("system", "여러개로 된 readme를 보고 배지, 아이콘을 적극 사용해서 아주 자세히 하나의 readme로 만들어줘. 기술스택은 무조건 배지로 해줘."));
+
+        return openAiClient.sendMessage(messages);
     }
 
     private void collectSummary(List<CompletableFuture<String>> responses, String token, String url){
         FileRes[] files = githubClient.readDirectory(token, url);
-
         try{
             for(int i=0;i<files.length;i++){
 
