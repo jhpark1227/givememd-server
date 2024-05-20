@@ -1,12 +1,11 @@
 package junhyeok.giveme.readme.service;
 
 import junhyeok.giveme.readme.dto.CommitFileDto;
-import junhyeok.giveme.readme.dto.LoadFileInfoDto;
 import junhyeok.giveme.readme.dto.request.CommitReadMeReq;
 import junhyeok.giveme.readme.dto.request.SaveReadmeReq;
 import junhyeok.giveme.readme.dto.request.UpdateReadmeReq;
+import junhyeok.giveme.readme.dto.response.FileRes;
 import junhyeok.giveme.readme.entity.Readme;
-import junhyeok.giveme.readme.repository.EvaluationRepository;
 import junhyeok.giveme.readme.repository.ReadmeRepository;
 import junhyeok.giveme.user.dao.GithubTokenDao;
 import junhyeok.giveme.readme.dto.response.ReadRepositoriesRes;
@@ -22,10 +21,12 @@ import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
@@ -54,10 +55,13 @@ public class ReadmeServiceTest {
     @Mock
     EvaluationService evaluationService;
 
+    @Mock
+    ReadmeAsyncService readmeAsyncService;
+
 
     @BeforeEach
     void setUp(){
-        readmeService = new ReadmeService(githubClient, openAiClient, evaluationService, githubTokenDao,readmeRepository, userRepository,readmeQueryService);
+        readmeService = new ReadmeService(githubClient, openAiClient, evaluationService, githubTokenDao,readmeRepository, userRepository,readmeQueryService, readmeAsyncService);
     }
 
     @Test
@@ -123,5 +127,23 @@ public class ReadmeServiceTest {
         then(githubClient).should().commitFile(captor.capture());
         Assertions.assertEquals("repo1",captor.getValue().getRepositoryName());
         Assertions.assertNull(captor.getValue().getSha());
+    }
+
+    @Test
+    void 리드미_생성(){
+        RepositoryInfo[] infos = {new RepositoryInfo("repo1", "url")};
+        given(githubTokenDao.findById(1L)).willReturn("token");
+        given(githubClient.findRepositories("token")).willReturn(infos);
+        FileRes[] fileRes = new FileRes[10];
+        fileRes[0] = new FileRes("file1.js", "file", "url1", null);
+        fileRes[1] = new FileRes("file2.js", "file", "url1", null);
+        fileRes[2] = new FileRes("file3.js", "file", "url1", null);
+        fileRes[3] = new FileRes("file4.js", "file", "url1", null);
+        fileRes[4] = new FileRes("file5.js", "file", "url1", null);
+        given(githubClient.readDirectory(anyString(),anyString())).willReturn(fileRes);
+        given(githubClient.readFile("token","url1")).willReturn("content1");
+        given(openAiClient.sendMessage(any())).willReturn("response");
+
+        readmeService.createReadme(1L, "repo1");
     }
 }
