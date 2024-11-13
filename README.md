@@ -58,6 +58,3 @@ https://spicy-lillipilli-407.notion.site/API-13d6a72d193780eb89d0e7b17d07cdbd?pv
 <br/><br/>
 
 ## 👨‍👩‍👧‍👦 팀 구성
-* 박준혁: 백엔드 개발 및 배포
-* 지승현: ChatGPT 파인튜닝 및 프론트엔드 개발
-* 하태욱: 프론트엔드 개발
